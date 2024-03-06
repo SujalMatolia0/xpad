@@ -7,37 +7,29 @@ import Superscript from "@tiptap/extension-superscript";
 import SubScript from "@tiptap/extension-subscript";
 import { Color } from "@tiptap/extension-color";
 import TextStyle from "@tiptap/extension-text-style";
-import { Button, Stack, TextInput, Loader } from "@mantine/core";
 import { api } from "~/utils/api";
 import { useForm } from "@mantine/form";
 import { type CreateNote } from "~/lib/zod";
 import { useRouter } from "next/router";
 import { notifications } from "@mantine/notifications";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { Button, Loader, Stack, TextInput } from "@mantine/core";
 
 export const UpdateNote = () => {
   const router = useRouter();
+
   const NoteId = parseInt(router.query.id as string);
 
   const GetNoteApi = api.new.get.useQuery({
     id: NoteId,
-    title: "",
-    content: "",
   });
 
-  const UpdateNoteForm = useForm<CreateNote>({});
-
-  const [editorInitialized, setEditorInitialized] = useState(false);
-  const [isEditorEnabled, setIsEditorEnabled] = useState(false);
-  const [contentFromApi, setContentFromApi] = useState("");
-
-  useEffect(() => {
-    if (!GetNoteApi.isLoading && !GetNoteApi.error) {
-      setContentFromApi(GetNoteApi.data?.content ?? "");
-      setEditorInitialized(true);
-      setIsEditorEnabled(true);
-    }
-  }, [GetNoteApi]);
+  const UpdateNoteForm = useForm<CreateNote>({
+    initialValues:{
+          title: GetNoteApi.data?.title ?? "",
+          content: GetNoteApi.data?.content ?? "",
+        },
+  });
 
   const editor = useEditor({
     extensions: [
@@ -50,12 +42,24 @@ export const UpdateNote = () => {
       TextStyle,
       Color,
     ],
-    content: contentFromApi,
+    content: UpdateNoteForm.values.content,
     onUpdate({ editor }) {
       UpdateNoteForm.setFieldValue("content", editor.getHTML());
     },
-    editable: isEditorEnabled,
   });
+  
+
+  useEffect(() => {
+    UpdateNoteForm.setValues({
+      title: GetNoteApi.data?.title?? "",
+      content: GetNoteApi.data?.content?? "",
+    })
+    editor?.commands.setContent(GetNoteApi.data?.content ?? "")
+
+    UpdateNoteForm.resetDirty();
+    UpdateNoteForm.resetTouched();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[GetNoteApi.data, GetNoteApi.isSuccess, GetNoteApi.error])
 
   const UpdateNoteApi = api.new.update.useMutation({
     onSuccess: () => {
@@ -90,7 +94,6 @@ export const UpdateNote = () => {
           label="Title"
           mb="lg"
           {...UpdateNoteForm.getInputProps("title")}
-          value={GetNoteApi.data?.title ?? ""}
         />
         
 

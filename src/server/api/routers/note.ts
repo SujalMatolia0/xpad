@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { CreateNoteInput, UpdateNoteInput } from "~/lib/zod";
+import { CreateNoteInput, GetNote, UpdateNoteInput } from "~/lib/zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { NoteSchema } from "~/server/db/schema";
 
@@ -24,13 +24,15 @@ export const notesRouter = createTRPCRouter({
     return listNote;
   }),
 
-  get: publicProcedure.input(UpdateNoteInput).query(async ({ ctx, input }) => {
-    const { id } = input;
+  get: publicProcedure.input(GetNote).query(async ({ ctx, input }) => {
+    
+
     const note = await ctx.db.query.NoteSchema.findFirst({
       where: (note, { eq}) => {
-        return eq(note.id, id);
+        return eq(note.id, input.id);
       },
     });
+
     return note;
   }),
 
