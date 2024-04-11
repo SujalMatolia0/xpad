@@ -22,7 +22,7 @@ XPAD is a web-based collaborative text editor designed to provide a seamless wri
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/<your-username>/xpad.git
+   git clone https://github.com/SujalMatolia0/xpad.git
    ```
 2. **Install Dependencies:**
    ```bash
